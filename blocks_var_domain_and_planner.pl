@@ -1,6 +1,6 @@
 /* =============================================================
    Mundo dos Blocos com Tamanhos Variáveis
-   Domínio STRIPS + Planner DFS (didático)
+   Domínio STRIPS + Planner BFS
    ------------------------------------------------------------- */
 
 % ---------- Parte 1: blocos e mesa (estáticos) ----------
@@ -57,17 +57,18 @@ can(move(B, table(X)), S) :-
     range_free(X, W, S).
 
 % ---------- Parte 4: Efeitos (adds/deletes) ----------
-deletes(move(B,_), S, [pos(B, OldPos)|Rest]) :-
+deletes(move(B,_), S, [pos(B, OldPos)]) :-
     % remove a posição antiga de B
-    member(pos(B, OldPos), S),
-    % se B estava sobre alguém, esse alguém fica clear
-    ( OldPos = on(Sup) -> Rest = [clear(Sup)] ; Rest = [] ).
+    member(pos(B, OldPos), S).
 
 adds(move(B, on(TB)), [pos(B, on(TB))]).
 adds(move(B, table(X)), [pos(B, table(X))]).
 
-% mantém 'clear(B)' sempre verdadeiro para quem foi movido
-post_move_clears(move(B,_), [clear(B)]).
+% Quando movemos um bloco, o que estava embaixo fica clear
+clear_effect(move(B, _), S, [clear(Sup)]) :-
+    member(pos(B, on(Sup)), S).
+clear_effect(move(B, _), S, []) :-
+    member(pos(B, table(_)), S).
 
 % ---------- Parte 5: Aplicação de ação ----------
 apply(S, A, S2) :-
@@ -75,33 +76,65 @@ apply(S, A, S2) :-
     deletes(A, S, ToDel),
     subtract(S, ToDel, S1),
     adds(A, Add),
-    post_move_clears(A, MoreAdd),
-    append(Add, MoreAdd, AddAll),
+    clear_effect(A, S, ClearAdd),
+    append(Add, ClearAdd, AllAdds),
     % destino (TB) deixa de estar clear se A colocar algo sobre ele
     ( A = move(_, on(TB)) -> subtract(S1, [clear(TB)], S1b) ; S1b = S1 ),
-    % normaliza
-    append(AddAll, S1b, S2uns),
-    sort(S2uns, S2).
+    % adiciona novos fatos
+    append(AllAdds, S1b, S2tmp),
+    % remove duplicatas usando sort
+    sort(S2tmp, S2).
 
 % ---------- Parte 6: Satisfação do objetivo ----------
 satisfies(State, Goals) :- forall(member(G, Goals), member(G, State)).
 
-% ---------- Parte 7: Planner DFS com limite ----------
-plan(State, Goals, MaxDepth, Plan) :-
-    dfs(State, Goals, [], MaxDepth, Plan).
+% ---------- Parte 7: Planner BFS ----------
+plan(State, Goals, Plan) :-
+    bfs([[State, []]], Goals, [State], Plan).
 
-dfs(S, G, _, _, []) :- satisfies(S, G), !.
-dfs(S, G, Visited, D, [A|Rest]) :-
-    D > 0,
-    action_template(A),        % gera um molde de ação
-    \+ member(A, Visited),     % evita laço bobo de repetir mesma ação
-    apply(S, A, S2),
-    D1 is D - 1,
-    dfs(S2, G, [A|Visited], D1, Rest).
+bfs([[S, P]|_], G, _, P) :- 
+    satisfies(S, G), !.
 
-% Moldes de ações possíveis (instanciações mínimas)
-action_template(move(B, on(TB))) :- block(B), block(TB), B \== TB.
-action_template(move(B, table(X))) :- block(B), table_slot(X).
+bfs([[S, P]|Rest], G, Visited, Plan) :-
+    findall([S2, [A|P]], 
+            (action_template(A), 
+             can(A, S), 
+             apply(S, A, S2),
+             \+ member_state(S2, Visited)
+            ), 
+            Successors),
+    extract_states(Successors, NewStates),
+    append(Visited, NewStates, NewVisited),
+    append(Rest, Successors, Queue),
+    bfs(Queue, G, NewVisited, Plan).
+
+% Extrai apenas os estados dos sucessores
+extract_states([], []).
+extract_states([[S, _]|Rest], [S|States]) :-
+    extract_states(Rest, States).
+
+% Verifica se um estado já foi visitado
+member_state(S, [H|_]) :- 
+    same_facts(S, H), !.
+member_state(S, [_|T]) :-
+    member_state(S, T).
+
+% Compara dois estados
+same_facts(S1, S2) :-
+    length(S1, L),
+    length(S2, L),
+    forall(member(F, S1), member(F, S2)),
+    forall(member(F, S2), member(F, S1)).
+
+% Action templates limitados para evitar explosão
+action_template(move(B, on(TB))) :- 
+    block(B), 
+    block(TB), 
+    B \== TB.
+
+action_template(move(B, table(X))) :- 
+    block(B), 
+    member(X, [0,1,2,3,4]).  % Apenas 5 posições
 
 /* =============================================================
    CENÁRIO DE TESTE (válido com estabilidade)
@@ -137,5 +170,5 @@ goal([ pos(c, table(2)),
   7) move(b, on(d))
   8) move(a, on(b))
 
-Sugestão: rode "plan(S0, G, 20, P)." após definir s0(S0), goal(G).
+Sugestão: rode "plan(S0, G, P)." após definir s0(S0), goal(G).
 */
