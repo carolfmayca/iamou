@@ -1,0 +1,20 @@
+Plano proposto (válido) para o cenário S0 -> Goal (tamanhos: a=1, b=1, c=2, d=2; largura da mesa=7)
+
+Estado inicial S0:
+  pos(d, table(0)), pos(b, on(d)), pos(a, on(b)), pos(c, on(a)), clear(c)
+
+Objetivo Goal:
+  pos(c, table(2)), pos(d, on(c)), pos(b, on(d)), pos(a, on(b))
+
+Passos (8):
+  1) move(c, table(2))     % libera a base 'c' e aloca slots [2..3]
+  2) move(a, on(c))        % usa c como apoio estável (1 <= 2)
+  3) move(b, table(4))     % libera 'd' (slots 4..4 livres)
+  4) move(a, on(b))        % deixa 'c' livre para receber 'd'
+  5) move(d, on(c))        % base estável: 2 <= 2
+  6) move(a, table(5))     % liberar 'b' para empilhar sobre 'd'
+  7) move(b, on(d))        % 1 <= 2
+  8) move(a, on(b))        % objetivo completo
+
+Checagens de estabilidade: sempre size(upper) <= size(lower).
+Checagens de espaço: cada movimento para mesa X usa faixa X..X+W-1 livre e dentro dos limites.

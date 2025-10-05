@@ -1,0 +1,60 @@
+-- ============================================================
+-- Mundo dos Blocos (tamanhos variáveis) - NuSMV (scaffold)
+-- Estado alvo:
+--   c na mesa (x=2), d sobre c, b sobre d, a sobre b
+-- ============================================================
+
+MODULE main
+VAR
+  xa : 0..6;  xb : 0..6;  xc : 0..6;  xd : 0..6;
+  sup_a : {table, a, b, c, d};   -- 'a' não pode apoiar-se em 'a'; será restringido nas transições
+  sup_b : {table, a, b, c, d};
+  sup_c : {table, a, b, c, d};
+  sup_d : {table, a, b, c, d};
+
+DEFINE
+  size_a := 1; size_b := 1; size_c := 2; size_d := 2;
+  table_width := 7;
+
+  in_range(x,w) := x + w - 1 < table_width;
+
+  occ_a(t) := t >= xa & t < xa + size_a;
+  occ_b(t) := t >= xb & t < xb + size_b;
+  occ_c(t) := t >= xc & t < xc + size_c;
+  occ_d(t) := t >= xd & t < xd + size_d;
+
+  goal := (sup_c = table & xc = 2) & (sup_d = c) & (sup_b = d) & (sup_a = b);
+
+INIT
+  -- S0 equivalente
+  sup_d = table & xd = 0 &
+  sup_b = d     & xb = xd &
+  sup_a = b     & xa = xb &
+  sup_c = a     & xc = xa;
+
+-- =====================
+-- TRANS (esqueleto)
+-- =====================
+-- Ideia: permitir um passo por vez movendo exatamente um bloco
+-- e exigindo pré-condições de estabilidade e espaço quando destino=mesa.
+
+TRANS
+  -- Mover 'c' para mesa em qualquer X válido (pré-condições + efeitos)
+  case
+    -- Exemplo de um template de movimento (c -> mesa):
+    (next(sup_c) = table & sup_c != table & next(xc) != xc) : 
+       in_range(next(xc), size_c) &
+       -- slots livres (não ocupados pelos demais no próximo estado)
+       !(occ_a(next(xc)) | occ_a(next(xc)+1)) &
+       !(occ_b(next(xc)) | occ_b(next(xc)+1)) &
+       !(occ_d(next(xc)) | occ_d(next(xc)+1)) &
+       -- efeitos sobre quem estava abaixo de 'c': fica clear (omissos por brevidade)
+       TRUE;
+
+    -- Demais templates (a->on(b), b->mesa, d->on(c), etc.) devem seguir a mesma lógica:
+    -- - Se destino é bloco Y: impor size(X) <= size(Y) e next(sup_X)=Y e herdar next(xX)=xY
+    -- - Se destino é mesa: impor in_range e slots livres
+    1 : TRUE;
+  esac;
+
+CTLSPEC ! EF goal    -- o NuSMV deve dar "FALSE" e produzir um trace (plano) se o modelo TRANS for completado
