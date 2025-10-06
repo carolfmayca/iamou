@@ -21,7 +21,7 @@ prolog
 ### Situação 1 (S0 -> Sf4)
 
 ```prolog
-?- s0_sit1(S0), sf4_sit1(G), plan(S0, G, P)
+?- s0_sit1(S0), sf4_sit1(G), plan(S0, G, P).
 ```
 
 ### Situação 2
@@ -33,5 +33,5 @@ prolog
 ### Situação 3
 
 ```prolog
-?- s0_sit3(S0), s7_sit3(G), plan(S0, G, P0)
+?- s0_sit3(S0), s7_sit3(G), plan(S0, G, P0).
 ```
