@@ -90,17 +90,19 @@ satisfies(State, Goals) :- forall(member(G, Goals), member(G, State)).
 
 % ---------- Parte 7: Planner BFS ----------
 plan(State, Goals, Plan) :-
-    bfs([[State, []]], Goals, [State], Plan).
+    sort(State, S0),
+    bfs([[S0, []]], Goals, [S0], Plan).
 
-bfs([[S, P]|_], G, _, P) :- 
-    satisfies(S, G), !.
+bfs([[S, P]|_], G, _, Plan) :- 
+    satisfies(S, G), !,
+    reverse(P, Plan).
 
 bfs([[S, P]|Rest], G, Visited, Plan) :-
     findall([S2, [A|P]], 
-            (action_template(A), 
-             can(A, S), 
-             apply(S, A, S2),
-             \+ member_state(S2, Visited)
+            ( action_template(A), 
+              can(A, S), 
+              apply(S, A, S2),
+              \+ member_state(S2, Visited)
             ), 
             Successors),
     extract_states(Successors, NewStates),
@@ -132,43 +134,68 @@ action_template(move(B, on(TB))) :-
     block(TB), 
     B \== TB.
 
-action_template(move(B, table(X))) :- 
-    block(B), 
-    member(X, [0,1,2,3,4]).  % Apenas 5 posições
+action_template(move(B, table(X))) :-
+    block(B),
+    member(X, [0,1,2,3,4,5,6]).
 
-/* =============================================================
-   CENÁRIO DE TESTE (válido com estabilidade)
-   -------------------------------------------------------------
-   Inicial:
-     d na mesa em 0; b em d; a em b; c em a; clear(c)
-   Objetivo:
-     Torre final (c como base): c na mesa em 2; d sobre c; b sobre d; a sobre b
-   Obs.: Respeita size: a=1, b=1, c=2, d=2 (sempre <= no suporte).
-   ============================================================= */
+/* --- Situação 1: S0 -> Sf4 --- */
 
-s0([ pos(d, table(0)),
-     pos(b, on(d)),
-     pos(a, on(b)),
-     pos(c, on(a)),
-     clear(c)
-   ]).
+% S0
+s0_sit1([
+  pos(c, table(0)),   % c cobre [0..1]
+  pos(a, table(3)),   % a em 3
+  pos(d, table(4)),   % d cobre [4..5]
+  pos(b, table(6)),   % b em 6
+  clear(a), clear(b), clear(c), clear(d)
+]).
 
-goal([ pos(c, table(2)),
-       pos(d, on(c)),
-       pos(b, on(d)),
-       pos(a, on(b))
-     ]).
+% Sf4 (objetivo)
+sf4_sit1([
+  pos(a, table(0)),   % a em 0
+  pos(c, table(1)),   % c cobre [1..2]
+  pos(d, table(3)),   % d cobre [3..4]
+  pos(b, table(6)),   % b em 6
+  clear(a), clear(b), clear(c), clear(d)
+]).
 
-/* Plano manual válido (8 passos) para s0 -> goal:
+/* --- Situação 2: S0 -> S5 --- */
 
-  1) move(c, table(2))
-  2) move(a, on(c))
-  3) move(b, table(4))
-  4) move(a, on(b))
-  5) move(d, on(c))
-  6) move(a, table(5))
-  7) move(b, on(d))
-  8) move(a, on(b))
+% S0 (como no slide: 'a' empilhado sobre 'c'; 'b' na mesa; 'd' na mesa)
+s0_sit2([
+  pos(c, table(0)),      % c ocupa [0..1]
+  pos(a, on(c)),         % a empilhado em c
+  pos(b, table(2)),      % b em 2
+  pos(d, table(4)),      % d ocupa [4..5]
+  clear(a), clear(b), clear(d)
+]).
 
-Sugestão: rode "plan(S0, G, P)." após definir s0(S0), goal(G).
-*/
+% S5 (alvo): d centralizado, c à direita, a sobre b na ponta direita
+% (ajustado para não haver sobreposição e respeitar bordas)
+s5_sit2([
+  pos(d, table(3)),      % d ocupa [3..4]
+  pos(c, table(5)),      % c ocupa [5..6]
+  pos(b, table(1)),      % b em 1
+  pos(a, on(b)),         % a sobre b (1 <= 1)
+  clear(a), clear(c), clear(d)
+]).
+
+/* --- Situação 3 (corrigida): S0 -> S7 --- */
+
+% S0 (como no slide, coerente com seus tamanhos)
+s0_sit3([
+  pos(c, table(0)),    % c ocupa [0..1]
+  pos(a, table(2)),    % a em 2
+  pos(d, table(3)),    % d ocupa [3..4]
+  pos(b, table(6)),    % b em 6 (ok ficar fora do range permitido, só não será destino)
+  clear(a), clear(b), clear(c), clear(d)
+]).
+
+% S7 (alvo sem sobreposição, dentro do range 0..4 para novos placements)
+% ideia: manter c e d onde já estão, mover b para 2 e empilhar a sobre b
+s7_sit3([
+  pos(c, table(0)),    % [0..1]
+  pos(d, table(3)),    % [3..4]
+  pos(b, table(2)),    % b em 2
+  pos(a, on(b)),       % a sobre b (1 <= 1)
+  clear(a), clear(c), clear(d)
+]).
