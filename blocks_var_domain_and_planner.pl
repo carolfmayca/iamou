@@ -160,7 +160,7 @@ sf4_sit1([
 
 /* --- Situação 2: S0 -> S5 --- */
 
-% S0 (como no slide: 'a' empilhado sobre 'c'; 'b' na mesa; 'd' na mesa)
+% S0
 s0_sit2([
   pos(c, table(0)),      % c ocupa [0..1]
   pos(a, on(c)),         % a empilhado em c
@@ -169,8 +169,7 @@ s0_sit2([
   clear(a), clear(b), clear(d)
 ]).
 
-% S5 (alvo): d centralizado, c à direita, a sobre b na ponta direita
-% (ajustado para não haver sobreposição e respeitar bordas)
+% S5 (alvo):
 s5_sit2([
   pos(d, table(3)),      % d ocupa [3..4]
   pos(c, table(5)),      % c ocupa [5..6]
@@ -179,9 +178,9 @@ s5_sit2([
   clear(a), clear(c), clear(d)
 ]).
 
-/* --- Situação 3 (corrigida): S0 -> S7 --- */
+/* --- Situação 3: S0 -> S7 --- */
 
-% S0 (como no slide, coerente com seus tamanhos)
+% S0
 s0_sit3([
   pos(c, table(0)),    % c ocupa [0..1]
   pos(a, table(2)),    % a em 2
@@ -190,8 +189,7 @@ s0_sit3([
   clear(a), clear(b), clear(c), clear(d)
 ]).
 
-% S7 (alvo sem sobreposição, dentro do range 0..4 para novos placements)
-% ideia: manter c e d onde já estão, mover b para 2 e empilhar a sobre b
+% S7
 s7_sit3([
   pos(c, table(0)),    % [0..1]
   pos(d, table(3)),    % [3..4]

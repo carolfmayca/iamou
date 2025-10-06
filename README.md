@@ -40,7 +40,7 @@ prolog
 ### Situação 3
 
 ```prolog
-?- s0_sit3(S0), s7_sit3(G), plan(S0, G, P0)
+?- s0_sit3(S0), s7_sit3(G), plan(S0, G, P0).
 ```
 
 ## Artefatos Entregues
