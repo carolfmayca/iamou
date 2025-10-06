@@ -1,0 +1,82 @@
+@startuml Mundo_Blocos_Variaveis
+
+title Máquina de Estados - Mundo dos Blocos Variáveis
+
+skinparam state {
+  BackgroundColor LightBlue
+  BorderColor DarkBlue
+  FontSize 10
+}
+
+skinparam arrow {
+  FontSize 9
+}
+
+' === SITUAÇÃO 1 ===
+state "S0_sit1" as S0_1 {
+  S0_1 : a: table(3)
+  S0_1 : b: table(6) 
+  S0_1 : c: table(0)
+  S0_1 : d: table(4)
+  S0_1 : clear: a,b,c,d
+}
+
+state "SF4_sit1" as SF4_1 {
+  SF4_1 : a: table(0)
+  SF4_1 : b: table(6)
+  SF4_1 : c: table(1) 
+  SF4_1 : d: table(3)
+  SF4_1 : clear: a,b,c,d
+}
+
+' === SITUAÇÃO 2 ===
+state "S0_sit2" as S0_2 {
+  S0_2 : a: on(c)
+  S0_2 : b: table(2)
+  S0_2 : c: table(0)
+  S0_2 : d: table(4)
+  S0_2 : clear: a,b,d
+}
+
+state "S5_sit2" as S5_2 {
+  S5_2 : a: on(b)
+  S5_2 : b: table(1)
+  S5_2 : c: table(5)
+  S5_2 : d: table(3)
+  S5_2 : clear: a,c,d
+}
+
+' === SITUAÇÃO 3 ===
+state "S0_sit3" as S0_3 {
+  S0_3 : a: table(2)
+  S0_3 : b: table(6)
+  S0_3 : c: table(0)
+  S0_3 : d: table(3)
+  S0_3 : clear: a,b,c,d
+}
+
+state "S7_sit3" as S7_3 {
+  S7_3 : a: on(b)
+  S7_3 : b: table(2)
+  S7_3 : c: table(0)
+  S7_3 : d: table(3)
+  S7_3 : clear: a,c,d
+}
+
+' === TRANSIÇÕES ===
+
+S0_1 --> SF4_1 : **Situação 1 (5 ações)**\n1. move(c, on(d))\n2. move(a, table(0))\n3. move(c, table(1))\n4. move(d, on(c))\n5. move(d, table(3))
+
+S0_2 --> S5_2 : **Situação 2 (7 ações)**\n1. move(a, on(b))\n2. move(d, on(c))\n3. move(d, table(3))\n4. move(a, on(d))\n5. move(c, table(5))\n6. move(b, table(1))\n7. move(a, on(b))
+
+S0_3 --> S7_3 : **Situação 3 (3 ações)**\n1. move(a, on(c))\n2. move(b, table(2))\n3. move(a, on(b))
+
+' === LEGENDAS ===
+note top of S0_1 : Situação 1\nReorganização complexa na mesa
+note top of S0_2 : Situação 2\nEstado inicial com empilhamento
+note top of S0_3 : Situação 3\nEmpilhamento simples
+
+' === INFORMAÇÕES DO DOMÍNIO ===
+note bottom : **Domínio:**\nBlocos: a(1), b(1), c(2), d(2)\nMesa: 7 posições (0-6)\nRegra: size(superior) ≤ size(inferior)
+
+@enduml
