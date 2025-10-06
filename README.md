@@ -6,7 +6,7 @@ Carolina Falabelo Maycá - <carolina.mayca@icomp.ufam.edu.br>
 
 Luiza da Costa Caxeixa - <luiza.caxeixa@icomp.ufam.edu.br>
 
-Fernando Lucas Nascimento Almeida - <fernando.almeida@icomp.ufam.edu.br>
+Fernando Lucas Almeida Nascimento - <fernando.nascimento@icomp.ufam.edu.br>
 
 ## Distribuição de Tarefas
 - Código Prolog: Carolina Falabelo Maycá
