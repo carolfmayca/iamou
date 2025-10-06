@@ -12,8 +12,8 @@ Fernando Lucas Nascimento Almeida - <fernando.almeida@icomp.ufam.edu.br>
 - Código Prolog: Carolina Falabelo Maycá
 - Tabela de Estados: Luiza da Costa Caxeixa
 - Diagrama de Estados: Luiza da Costa Caxeixa
-- Modelo SMV: Fernando Lucas Nascimento Almeida
-- Documentação: Carolina Falabelo Maycá e Fernando Lucas Nascimento Almeida
+- Modelo SMV: Fernando Lucas Almeida Nascimento
+- Documentação: Carolina Falabelo Maycá e Fernando Lucas Almeida Nascimento
 
 ## Como rodar
 
